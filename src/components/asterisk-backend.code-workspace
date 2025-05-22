@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../../../asterisk-backend"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {}
+}
