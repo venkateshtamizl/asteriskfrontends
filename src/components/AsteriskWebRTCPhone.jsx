@@ -244,7 +244,7 @@ const WebRTCPhone = () => {
           background: "#f9f9f9", border: "1px solid #ddd", padding: "6px 12px",
           borderRadius: 6, cursor: "pointer", fontWeight: "bold"
         }}>
-          📜 Call Logs
+          📜 Call Log
         </button>
       </div>
       {showLogs && (
