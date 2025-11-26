@@ -17,7 +17,7 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy our custom Nginx config
-COPY ./ngnix/default.conf /etc/nginx/conf.d/nginx.conf
+COPY ./nginx/default.conf /etc/nginx/conf.d/nginx.conf
 
 EXPOSE 80
 

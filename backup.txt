@@ -1,0 +1,18 @@
+server {
+    listen 8080;
+    listen 8443 ssl;
+
+    ssl_certificate     /etc/nginx/certs/asterisk.crt;
+    ssl_certificate_key /etc/nginx/certs/asterisk.key;
+
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+    
+}
+
