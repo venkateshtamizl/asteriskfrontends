@@ -33,6 +33,30 @@ const WebRTCPhone = () => {
   const durationInterval = useRef(null);
   const ringtoneRef = useRef(null);
   const remoteAudioRef = useRef(null);
+
+  /* Option 1: unlock audio on first user interaction */
+  useEffect(() => {
+    const enableAudio = () => {
+      try {
+        if (ringtoneRef.current) {
+          // try play then immediately pause to "unlock" audio autoplay permissions
+          ringtoneRef.current.play().then(() => {
+            ringtoneRef.current.pause();
+            ringtoneRef.current.currentTime = 0;
+          }).catch(() => {
+            // ignore if still blocked
+          });
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        window.removeEventListener("click", enableAudio);
+      }
+    };
+    window.addEventListener("click", enableAudio, { once: true });
+    return () => window.removeEventListener("click", enableAudio);
+  }, []);
+
   useEffect(() => {
     const socket = new JsSIP.WebSocketInterface("wss://192.168.29.130:8089/ws");
     const configuration = {
@@ -53,19 +77,35 @@ const WebRTCPhone = () => {
       if (originator === "remote") {
         setCaller(session.remote_identity.uri.toString());
         setIncomingSession(session);
-        ringtoneRef.current?.play();
+        // attempt to play ringtone but handle blocked promise gracefully
+        if (ringtoneRef.current) {
+          ringtoneRef.current.play().catch(() => {
+            // playback blocked (likely until user interacts) — that's fine, unlocked by click handler above
+          });
+        }
         attachRemoteStream(session);
         sessionEvents(session, session.remote_identity.uri.user, "Me");
       }
     });
-    return () => userAgent.stop();
-  }, []);
-  const attachRemoteStream = (session) => {
-    session.connection.addEventListener("track", (e) => {
-      if (remoteAudioRef.current && e.streams.length > 0) {
-        remoteAudioRef.current.srcObject = e.streams[0];
+    return () => {
+      try {
+        userAgent.stop();
+      } catch (e) {
+        // ignore
       }
-    });
+    };
+  }, []);
+
+  const attachRemoteStream = (session) => {
+    try {
+      session.connection.addEventListener("track", (e) => {
+        if (remoteAudioRef.current && e.streams.length > 0) {
+          remoteAudioRef.current.srcObject = e.streams[0];
+        }
+      });
+    } catch (err) {
+      // ignore
+    }
   };
   const sessionEvents = (session, from, to) => {
     session.on("accepted", () => {
